@@ -53,11 +53,9 @@ qSetDescriptor Usermgr_2ndfriend(User user){
     return tmp;
 }
 void append_set(qBinarySafeString* bss,qSetDescriptor set){
-    qLogDebugfmt("set size %d",set.size);
     q__bss_append(bss,VPTR(set.size),sizeof(set.size));
     for(qSetIterator it=qSet_begin(set);
     qSetIterator_isvalid(it);it=qSetIterator_next(it)){
-        qLogDebug("BSSAPP");
         q__bss_append(bss,qSetIterator_deref(it),USERNAMELEN);
     }
 }
@@ -65,12 +63,10 @@ void append_set(qBinarySafeString* bss,qSetDescriptor set){
 int read_set(char* src,qSetDescriptor* set){
     char* position = src;
     unsigned int len = *(unsigned int*)position;
-    qLogDebugfmt("Set Len %d",len);
     position += sizeof(unsigned int);
     for(int i=0;i<len;i++){
         qSet__insert(set,position+i*USERNAMELEN,USERNAMELEN);
     }
-    qLogDebugfmt("New offset %ld",position+len*USERNAMELEN-src);
     return position+len*USERNAMELEN-src;
 }
 // format of saving:
