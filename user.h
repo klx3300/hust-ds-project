@@ -2,7 +2,7 @@
 #define ZHWK_DS_PROJ_USER_H
 #include "zhwkre/set.h"
 
-#define USERNAMELEN 20
+#define USERNAMELEN 16
 
 struct q__user{
     char username[USERNAMELEN];

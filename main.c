@@ -4,9 +4,19 @@
 #include "stdafx.h"
 #include "zhwkre/log.h"
 #include "zhwkre/unidef.h"
+#include "zhwkre/error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+void dbgprintstr(char* str){
+    printf("[");
+    for(int i=0;str[i]!='\0';i++){
+        printf("%u",(unsigned char)str[i]);
+        if(str[i+1]!='\0') printf(",");
+    }
+    printf("]\n");
+}
 
 int getopercode(){
     qBinarySafeString inputs = readline(stdin);
@@ -180,7 +190,7 @@ int main() {
         printf("    	 11. BatchReset \n");
         printf("    	  0. Exit\n");
         printf("-------------------------------------------------\n");
-        printf("       Please choose your operation[0~10]:");
+        printf("       Please choose your operation[0~11]:");
         op = getopercode();
         int i = 0;
         switch (op) {
@@ -250,6 +260,7 @@ int main() {
                 User *user = Usermgr_getuser(destname);
                 if(user == NULL){
                     printf("User %s not exist.\n",destname);
+                    dbgprintstr(destname);
                     continue;
                 }
                 user_menu(user);
@@ -337,13 +348,28 @@ int main() {
                 int counter = 0;
                 while(!feof(fp)){
                     qBinarySafeString thisline = readline(fp);
+                    if(thisline.size == 0){
+                        qbss_destructor(thisline);
+                        continue;
+                    } 
+                    //printf("%s -> ",thisline.str);
+                    //dbgprintstr(thisline.str);
                     User usr=User_constructor();
                     memcpy(usr.username,thisline.str,strlen(thisline.str));
                     qbss_destructor(thisline);
-                    Usermgr_adduser(usr);
+                    int status = Usermgr_adduser(usr);
+                    if(status){
+                        qLogWarnfmt("Add user %s failed, return %d, zhwkerr %d",usr.username,status,zhwk_error);
+                        continue;
+                    }
                     counter++;
                 }
                 qLogSuccfmt("Added %d users.",counter);
+                // testing..
+                int testcntr = 0;
+                formap(users,it){
+                    testcntr++;
+                }
                 break;
             }
             case 0:

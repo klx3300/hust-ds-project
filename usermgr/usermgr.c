@@ -10,7 +10,7 @@
 qBTreeDescriptor users;
 
 void Usermgr_init(){
-    users = qBTree_constructor(intcmp);
+    users = qBTree_constructor(stringcmp);
 }
 
 int Usermgr_adduser(User user){
@@ -45,12 +45,19 @@ qSetDescriptor Usermgr_2ndfriend(User user){
     }
     qSetDescriptor tmp = qSet_difference(interdesc,user.friends);
     qSet__destructor(&interdesc);
+    qSetIterator myselfit;
+    if(!qSet__ptr_at(tmp,&myselfit,user.username,USERNAMELEN)){
+        //!
+        qSet__erase(&tmp,myselfit);
+    }
     return tmp;
 }
 void append_set(qBinarySafeString* bss,qSetDescriptor set){
+    qLogDebugfmt("set size %d",set.size);
     q__bss_append(bss,VPTR(set.size),sizeof(set.size));
     for(qSetIterator it=qSet_begin(set);
     qSetIterator_isvalid(it);it=qSetIterator_next(it)){
+        qLogDebug("BSSAPP");
         q__bss_append(bss,qSetIterator_deref(it),USERNAMELEN);
     }
 }
@@ -58,10 +65,12 @@ void append_set(qBinarySafeString* bss,qSetDescriptor set){
 int read_set(char* src,qSetDescriptor* set){
     char* position = src;
     unsigned int len = *(unsigned int*)position;
+    qLogDebugfmt("Set Len %d",len);
     position += sizeof(unsigned int);
     for(int i=0;i<len;i++){
         qSet__insert(set,position+i*USERNAMELEN,USERNAMELEN);
     }
+    qLogDebugfmt("New offset %ld",position+len*USERNAMELEN-src);
     return position+len*USERNAMELEN-src;
 }
 // format of saving:
@@ -76,7 +85,6 @@ qBinarySafeString Usermgr_save(){
         append_set(&bss,usr->friends);
         append_set(&bss,usr->watching);
         append_set(&bss,usr->watcher);
-        STRAPPCH(bss,'\n');
     }
     return bss;
 }
@@ -85,15 +93,10 @@ int Usermgr_load(qBinarySafeString content){
     while(position!=content.str+content.size){
         User usr=User_constructor();
         memcpy(usr.username,position,USERNAMELEN);
+        position += USERNAMELEN;
         position=position + read_set(position,&(usr.friends));
         position=position + read_set(position,&(usr.watching));
         position=position + read_set(position,&(usr.watcher));
-        // this should be a newline. check that!
-        if(*position != '\n'){
-            qLogFail("Assertion failed: there should be a newline!\n");
-            return -1;
-        }
-        position++;
         int stat = Usermgr_adduser(usr);
         if(stat) return stat;
     }
@@ -111,7 +114,7 @@ void Usermgr_randomize(int seed){
     qBTreeIterator_isvalid(it);it=qBTreeIterator_next(it)){
         qVector__push_back(&allusername,qBTreeIterator_deref(it).key);
     }
-    int eachcnts = MAX(users.size/3,30);
+    int eachcnts = MIN(users.size/3,30);
     int counter = 1;
     for(qBTreeIterator it = qBTree_begin(users);
     qBTreeIterator_isvalid(it);it=qBTreeIterator_next(it)){
