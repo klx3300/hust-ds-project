@@ -174,6 +174,7 @@ int main() {
     Usermgr_init();
     int op = 1;
     while (op) {
+        FLAG_CMPDBG = 0;
         printf("\n\n");
         printf("             Set Operations               \n");
         printf("-------------------------------------------------\n");
@@ -253,6 +254,7 @@ int main() {
                 break;
             }
             case 7: {
+                FLAG_CMPDBG = 1;
                 printf("Please input name(%d):",USERNAMELEN-1);
                 char destname[USERNAMELEN];
                 int pos = getstring(destname,USERNAMELEN-1);

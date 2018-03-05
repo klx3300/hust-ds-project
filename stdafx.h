@@ -1,5 +1,6 @@
 #ifndef ZHWK_DS_PROJ_STDAFX_H
 #define ZHWK_DS_PROJ_STDAFX_H
+extern int FLAG_CMPDBG;
 int intcmp(void* a,unsigned int asz,void* b,unsigned int bsz);
 int stringcmp(void* a,unsigned int asz,void* b,unsigned int bsz);
 
