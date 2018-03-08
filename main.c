@@ -5,9 +5,12 @@
 #include "zhwkre/log.h"
 #include "zhwkre/unidef.h"
 #include "zhwkre/error.h"
+#include "zhwkre/utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+FILE* outdest = NULL;
 
 void dbgprintstr(char* str){
     printf("[");
@@ -171,6 +174,7 @@ void user_menu(User *user) {
 }
 
 int main() {
+    outdest = stdout;
     Usermgr_init();
     int op = 1;
     while (op) {
@@ -188,10 +192,11 @@ int main() {
         printf("    	  8. ShowCommonFriends          \n");
         printf("    	  9. ShowCommonFollowings    \n");
         printf("    	 10. ShowSecondDegreeFriends \n");
-        printf("    	 11. BatchReset \n");
+        printf("    	 11. BatchImport \n");
+        printf("    	 12. ChangeOutputDestination \n");
         printf("    	  0. Exit\n");
         printf("-------------------------------------------------\n");
-        printf("       Please choose your operation[0~11]:");
+        printf("       Please choose your operation[0~12]:");
         op = getopercode();
         int i = 0;
         switch (op) {
@@ -222,7 +227,7 @@ int main() {
 
             case 4: {
                 formap(users,it){
-                    printf("%s\n",qBTreeIterator_deref(it).key);
+                    fprintf(outdest,"%s\n",qBTreeIterator_deref(it).key);
                 }
                 break;
             }
@@ -262,7 +267,6 @@ int main() {
                 User *user = Usermgr_getuser(destname);
                 if(user == NULL){
                     printf("User %s not exist.\n",destname);
-                    dbgprintstr(destname);
                     continue;
                 }
                 user_menu(user);
@@ -289,7 +293,7 @@ int main() {
                 }
                 qSetDescriptor desc = Usermgr_bothfriend(*usera,*userb);
                 forset(desc,it){
-                    printf("%s\n",qSetIterator_deref(it));
+                    fprintf(outdest,"%s\n",qSetIterator_deref(it));
                 }
                 qSet_destructor(desc);
                 break;
@@ -315,7 +319,7 @@ int main() {
                 }
                 qSetDescriptor desc = Usermgr_bothwatch(*usera,*userb);
                 forset(desc,it){
-                    printf("%s\n",qSetIterator_deref(it));
+                    fprintf(outdest,"%s\n",qSetIterator_deref(it));
                 }
                 qSet_destructor(desc);
                 break;
@@ -332,7 +336,7 @@ int main() {
                 }
                 qSetDescriptor desc = Usermgr_2ndfriend(*usera);
                 forset(desc,it){
-                    printf("%s\n",qSetIterator_deref(it));
+                    fprintf(outdest,"%s\n",qSetIterator_deref(it));
                 }
                 qSet_destructor(desc);
                 break;
@@ -374,8 +378,39 @@ int main() {
                 }
                 break;
             }
-            case 0:
+            case 12: {
+                printf("Please input filename, \"stdout\" for screen(255)> ");
+                char filename[256];
+                memset(filename,0,256);
+                getstring(filename,255);
+                if(fullstrcmp(filename,"stdout")){
+                    if(outdest != stdout){
+                        qLogInfo("Closing previous opened file..");
+                        fclose(outdest);
+                        outdest = stdout;
+                    }
+                }else{
+                    if(outdest != stdout){
+                        qLogInfo("Closing previous opened file..");
+                        fclose(outdest);
+                    }
+                    outdest = fopen(filename,"w+");
+                    if(outdest == NULL){
+                        qLogWarnfmt("Cannot open file %s, default to stdout..",filename);
+                        outdest = stdout;
+                        break;
+                    }
+                }
+                qLogSuccfmt("Successfully changed output destination to file %s.",filename);
                 break;
+            }
+            case 0:{
+                if(outdest != stdout){
+                    qLogInfo("Closing previous opened file..");
+                    fclose(outdest);
+                }
+                break;
+            }
         }
     }
 
