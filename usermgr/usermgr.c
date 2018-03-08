@@ -110,7 +110,7 @@ void Usermgr_randomize(int seed){
     qBTreeIterator_isvalid(it);it=qBTreeIterator_next(it)){
         qVector__push_back(&allusername,qBTreeIterator_deref(it).key);
     }
-    int eachcnts = MIN(users.size/3,30);
+    int eachcnts = MIN(users.size/3,100);
     int counter = 1;
     for(qBTreeIterator it = qBTree_begin(users);
     qBTreeIterator_isvalid(it);it=qBTreeIterator_next(it)){

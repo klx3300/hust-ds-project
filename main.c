@@ -84,7 +84,8 @@ void user_menu(User *user) {
                 int pos = getstring(destname,USERNAMELEN-1);
                 destname[pos] = '\0';
                 // check Exist
-                if(qBTree__ptr_at(users,NULL,destname,USERNAMELEN)){
+                qBTreeIterator it;
+                if(qBTree__ptr_at(users,&it,destname,USERNAMELEN)){
                     printf("User %s not exist.\n",destname);
                     continue;
                 }
@@ -98,7 +99,8 @@ void user_menu(User *user) {
                 int pos = getstring(destname,USERNAMELEN-1);
                 destname[pos] = '\0';
                 // check Exist
-                if(qBTree__ptr_at(users,NULL,destname,USERNAMELEN)){
+                qBTreeIterator it;
+                if(qBTree__ptr_at(users,&it,destname,USERNAMELEN)){
                     printf("User %s not exist.\n",destname);
                     continue;
                 }
@@ -112,7 +114,8 @@ void user_menu(User *user) {
                 int pos = getstring(destname,USERNAMELEN-1);
                 destname[pos] = '\0';
                 // check Exist
-                if(qBTree__ptr_at(users,NULL,destname,USERNAMELEN)){
+                qBTreeIterator it;
+                if(qBTree__ptr_at(users,&it,destname,USERNAMELEN)){
                     printf("User %s not exist.\n",destname);
                     continue;
                 }

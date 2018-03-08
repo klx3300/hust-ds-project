@@ -65,12 +65,28 @@ qAVLTreeNode* qAVLTree__SimpleLeftRotate(qAVLTreeNode* root){
     }
     // perform rotation
     qAVLTreeNode *rrchild = (root->rchild);
-    root->rchild = rrchild->lchild;
-    rrchild->lchild = root;
-    // update height accordingly
-    root->height = qAVLTreeNode__updateHeight(root);
-    rrchild -> height = qAVLTreeNode__updateHeight(rrchild);
-    return rrchild;
+    qAVLTreeNode *rrlchild = root->rchild->lchild;
+    qAVLTreeNode *rrrchild = root->rchild->rchild;
+    if(rrrchild == NULL){
+        // merge
+        qAVLTreeNode *rrllchild = rrlchild->lchild;
+        qAVLTreeNode *rrlrchild = rrlchild->rchild;
+        root->rchild = rrllchild;
+        rrchild->lchild = rrlrchild;
+        rrlchild->lchild = root;
+        rrlchild->rchild = rrchild;
+        root->height = qAVLTreeNode__updateHeight(root);
+        rrchild->height = qAVLTreeNode__updateHeight(rrchild);
+        rrlchild->height = qAVLTreeNode__updateHeight(rrlchild);
+        return rrlchild;
+    }else{
+        root->rchild = rrchild->lchild;
+        rrchild->lchild = root;
+        // update height accordingly
+        root->height = qAVLTreeNode__updateHeight(root);
+        rrchild -> height = qAVLTreeNode__updateHeight(rrchild);
+        return rrchild;
+    }
 }
 
 qAVLTreeNode* qAVLTree__SimpleRightRotate(qAVLTreeNode* root){
@@ -79,13 +95,29 @@ qAVLTreeNode* qAVLTree__SimpleRightRotate(qAVLTreeNode* root){
         return NULL;
     }
     qAVLTreeNode *rlchild = (root->lchild);
+    qAVLTreeNode *rllchild = root->lchild->lchild;
+    qAVLTreeNode* rlrchild = root->lchild->rchild;
     // look SimpleLeftRotate for details..
-    root->lchild = rlchild->rchild;
-    rlchild->rchild = root;
-    // need update height
-    root->height = qAVLTreeNode__updateHeight(root);
-    rlchild -> height = qAVLTreeNode__updateHeight(rlchild);
-    return rlchild;
+    if(rllchild == NULL){
+        // merge
+        qAVLTreeNode* rlrlchild = rlrchild->lchild;
+        qAVLTreeNode* rlrrchild = rlrchild->rchild;
+        rlchild->rchild = rlrlchild;
+        root->lchild = rlrrchild;
+        rlrchild->lchild = rlchild;
+        rlrchild->rchild = root;
+        root->height = qAVLTreeNode__updateHeight(root);
+        rlchild->height = qAVLTreeNode__updateHeight(rlchild);
+        rlrchild->height = qAVLTreeNode__updateHeight(rlrchild);
+        return rlrchild;
+    }else{
+        root->lchild = rlchild->rchild;
+        rlchild->rchild = root;
+        // need update height
+        root->height = qAVLTreeNode__updateHeight(root);
+        rlchild -> height = qAVLTreeNode__updateHeight(rlchild);
+        return rlchild;
+    }
 }
 
 // any double rotations are combinations of simple rotations
@@ -153,7 +185,7 @@ qAVLTreeNode* qAVLTree__left_balance(qAVLTreeDescriptor desc,qAVLTreeNode* root)
 
 qAVLTreeNode* qAVLTree__right_balance(qAVLTreeDescriptor desc,qAVLTreeNode* root){
     if(qAVLTreeNode__get_blfactor(root) >= 2){
-        if(root->rchild != NULL && root->rchild->lchild != NULL && qAVLTreeNode__get_blfactor(root->rchild->lchild) > 0){
+        if(root->rchild != NULL && root->rchild->lchild != NULL && qAVLTreeNode__get_blfactor(root->rchild->lchild) < 0){
             return qAVLTree__RightLeftRotate(root);
         }else{
             return qAVLTree__SimpleLeftRotate(root);
@@ -262,6 +294,7 @@ int qAVLTree__insert(qAVLTreeDescriptor *desc,void* elem,ui size){
         memcpy(cpdata,elem,size);
         desc->root->data = cpdata;
         desc->root->size = size;
+        desc->root->height = 1;
         desc->size = 1;
         return 0;
     }
@@ -354,7 +387,7 @@ int qAVLTree__recursive_delete(qAVLTreeDescriptor desc,qAVLTreeNode* root,qAVLTr
         if(status) return status;
         root->lchild = newroot;
         root->height = qAVLTreeNode__updateHeight(root);
-        *newrootptr = qAVLTree__left_balance(desc,root);
+        *newrootptr = qAVLTree__right_balance(desc,root);
         return 0;
     }else{
         if(root->rchild == NULL){
@@ -367,7 +400,7 @@ int qAVLTree__recursive_delete(qAVLTreeDescriptor desc,qAVLTreeNode* root,qAVLTr
         if(status) return status;
         root->rchild = newroot;
         root->height = qAVLTreeNode__updateHeight(root);
-        *newrootptr = qAVLTree__right_balance(desc,root);
+        *newrootptr = qAVLTree__left_balance(desc,root);
         return 0;
     }
 }
